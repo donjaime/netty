@@ -130,7 +130,7 @@ public class WebSocket08FrameDecoder extends ByteToMessageDecoder
     protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
 
         // Discard all data received if closing handshake was received before.
-        if (receivedClosingHandshake) {
+        if (receivedClosingHandshake || in.readableBytes() == 0) {
             in.skipBytes(actualReadableBytes());
             return;
         }
