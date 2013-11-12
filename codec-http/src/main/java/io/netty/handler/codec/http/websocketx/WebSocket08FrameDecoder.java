@@ -134,6 +134,9 @@ public class WebSocket08FrameDecoder extends ByteToMessageDecoder
             in.skipBytes(actualReadableBytes());
             return;
         }
+        if (in.readableBytes() == 0) {
+            return;
+        }
             switch (state) {
                 case READING_FIRST:
                     framePayloadLength = 0;
