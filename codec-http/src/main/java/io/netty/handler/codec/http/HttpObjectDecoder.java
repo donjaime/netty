@@ -736,7 +736,12 @@ public abstract class HttpObjectDecoder extends ByteToMessageDecoder {
                         sb.setLength(end);
                     }
 
-                    headers.add(name, sb.toString());
+                    String value = sb.toString();
+                    if (value.equals("\r")) {
+                        headers.add(name, "");
+                    } else {
+                        headers.add(name, sb.toString());
+                    }
 
                     parseState = HeaderParseState.LINE_START;
                     // unread one byte to process it in LINE_START
