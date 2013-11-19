@@ -21,12 +21,7 @@ import static io.netty.handler.codec.http.HttpHeaders.Values.KEEP_ALIVE;
 import static io.netty.handler.codec.http.HttpResponseStatus.NOT_FOUND;
 import static java.util.UUID.randomUUID;
 import io.netty.buffer.Unpooled;
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelFutureListener;
-import io.netty.channel.ChannelHandler;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.channel.*;
 import io.netty.handler.codec.http.DefaultFullHttpResponse;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.FullHttpResponse;
@@ -69,21 +64,35 @@ import java.util.regex.Pattern;
 public class SockJsHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
 
     private static final InternalLogger logger = InternalLoggerFactory.getInstance(SockJsHandler.class);
-    private final Map<String, SockJsServiceFactory> factories = new LinkedHashMap<String, SockJsServiceFactory>();
     private static final ConcurrentMap<String, SockJsSession> sessions = new ConcurrentHashMap<String, SockJsSession>();
     private static final PathParams NON_SUPPORTED_PATH = new NonSupportedPath();
     private static final Pattern SERVER_SESSION_PATTERN = Pattern.compile("^/([^/.]+)/([^/.]+)/([^/.]+)");
 
+    private final Map<String, SockJsServiceFactory> factories = new LinkedHashMap<String, SockJsServiceFactory>();
+    private final EventLoopGroup sessionHandlerGroup;
+
     /**
-     * Sole constructor which takes one or more {@code SockJSServiceFactory}. These factories will
-     * later be used by the server to create the SockJS services that will be exposed by this server
+     * Constructor which takes in an optional {@link EventLoopGroup}
      *
+     * @param sessionHandlerGroup an optional {@link EventLoopGroup} to provide threadpool isolation for the SockJs {@link SessionHandler}
+     *                            invocations
      * @param factories one or more {@link SockJsServiceFactory}s.
      */
+    public SockJsHandler(EventLoopGroup sessionHandlerGroup, final SockJsServiceFactory... factories) {
+         this.sessionHandlerGroup = sessionHandlerGroup;
+         for (SockJsServiceFactory factory : factories) {
+             this.factories.put(factory.config().prefix(), factory);
+         }
+    }
+
+    /**
+     * Constructor which takes one or more {@code SockJSServiceFactory}. These factories will
+     * later be used by the server to create the SockJS services that will be exposed by this server
+     *
+     * See: {@link #SockJsHandler(io.netty.channel.EventLoopGroup, io.netty.handler.codec.sockjs.SockJsServiceFactory...)}
+     */
     public SockJsHandler(final SockJsServiceFactory... factories) {
-        for (SockJsServiceFactory factory : factories) {
-            this.factories.put(factory.config().prefix(), factory);
-        }
+        this(null, factories);
     }
 
     @Override
@@ -173,7 +182,13 @@ public class SockJsHandler extends SimpleChannelInboundHandler<FullHttpRequest> 
 
     private void addSessionHandler(final SessionState sessionState, final SockJsSession session,
             final ChannelHandlerContext ctx) {
-        ctx.pipeline().addLast(new SessionHandler(sessionState, session));
+        if (this.sessionHandlerGroup != null) {
+          // Isolated thread pool.
+          ctx.pipeline().addLast(this.sessionHandlerGroup, new SessionHandler(sessionState, session));
+        } else {
+          // Fall back to the worker group.
+          ctx.pipeline().addLast(new SessionHandler(sessionState, session));
+        }
     }
 
     private void checkSessionExists(final String sessionId, final HttpRequest request) throws SessionNotFoundException {

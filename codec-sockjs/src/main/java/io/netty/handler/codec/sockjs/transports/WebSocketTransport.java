@@ -204,6 +204,7 @@ public class WebSocketTransport extends SimpleChannelInboundHandler<Object> {
             ctx.writeAndFlush(internalServerErrorResponse(request.getProtocolVersion(), cause.getMessage()))
             .addListener(ChannelFutureListener.CLOSE);
         } else {
+            logger.error("Exception in WebSocketTransport", cause);
             ctx.fireExceptionCaught(cause);
         }
     }
