@@ -15,6 +15,7 @@
  */
 package io.netty.handler.codec.sockjs.handlers;
 
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.sockjs.util.ArgumentUtil;
 import io.netty.util.internal.logging.InternalLogger;
@@ -42,7 +43,7 @@ class SendingSessionState implements SessionState {
     }
 
     @Override
-    public void onOpen(final SockJsSession session, final ChannelHandlerContext ctx) {
+    public void flushMessages(final SockJsSession session, final Channel activeChannel) {
     }
 
     @Override

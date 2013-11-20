@@ -95,7 +95,7 @@ public class JsonpPollingTransport extends ChannelDuplexHandler {
             Transports.setSessionIdCookie(response, config, request);
             ctx.writeAndFlush(response, promise);
         } else {
-            ctx.write(ReferenceCountUtil.retain(msg), promise);
+            ctx.writeAndFlush(ReferenceCountUtil.retain(msg), promise);
         }
     }
 

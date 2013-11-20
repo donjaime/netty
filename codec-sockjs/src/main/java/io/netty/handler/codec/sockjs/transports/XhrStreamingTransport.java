@@ -63,7 +63,7 @@ public class XhrStreamingTransport extends ChannelOutboundHandlerAdapter {
      * Sole constructor.
      *
      * @param config the SockJS {@link SockJsConfig} instance.
-     * @param request the {@link FullHttpRequest} which can be used get information like the HTTP version.
+     * @param request the {@link HttpRequest} which can be used get information like the HTTP version.
      */
     public XhrStreamingTransport(final SockJsConfig config, final HttpRequest request) {
         this.config = config;

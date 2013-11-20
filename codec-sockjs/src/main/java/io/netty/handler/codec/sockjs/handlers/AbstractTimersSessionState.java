@@ -19,6 +19,7 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
 
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.handler.codec.sockjs.SockJsSessionContext;
 import io.netty.handler.codec.sockjs.protocol.HeartbeatFrame;
 import io.netty.handler.codec.sockjs.util.ArgumentUtil;
 import io.netty.util.concurrent.ScheduledFuture;
@@ -61,7 +62,11 @@ abstract class AbstractTimersSessionState implements SessionState {
                     }
                     if (session.timestamp() + session.config().sessionTimeout() < now) {
                         final SockJsSession removed = sessions.remove(session.sessionId());
-                        session.context().close();
+                        //if (ctx.handler() instanceof SockJsSessionContext) {
+                        //  ((SockJsSessionContext) ctx.handler()).close();
+                        //} else {
+                          session.context().close();
+                        //}
                         sessionTimer.cancel(true);
                         heartbeatFuture.cancel(true);
                         logger.debug("Removed " + removed.sessionId() + " from map[" + sessions.size() + "]");

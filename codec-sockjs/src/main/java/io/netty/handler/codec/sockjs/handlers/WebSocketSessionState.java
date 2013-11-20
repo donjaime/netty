@@ -17,7 +17,11 @@ package io.netty.handler.codec.sockjs.handlers;
 
 import java.util.concurrent.TimeUnit;
 
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.handler.codec.sockjs.SockJsSessionContext;
 import io.netty.handler.codec.sockjs.protocol.HeartbeatFrame;
 import io.netty.util.concurrent.ScheduledFuture;
 import io.netty.util.internal.logging.InternalLogger;
@@ -36,7 +40,15 @@ class WebSocketSessionState implements SessionState {
 
     @Override
     public void onConnect(final SockJsSession session, final ChannelHandlerContext ctx) {
-        startHeartbeatTimer(ctx, session);
+       startHeartbeatTimer(ctx, session);
+       ctx.channel().closeFuture().addListener(new ChannelFutureListener() {
+
+          @Override
+          public void operationComplete(ChannelFuture future) throws Exception {
+              // No need for a reaper or timeouts. Websockets die when the channel dies.
+              ((SockJsSessionContext) ctx.handler()).close();
+          }
+        });
     }
 
     private void startHeartbeatTimer(final ChannelHandlerContext ctx, final SockJsSession session) {
@@ -56,7 +68,7 @@ class WebSocketSessionState implements SessionState {
     }
 
     @Override
-    public void onOpen(final SockJsSession session, final ChannelHandlerContext ctx) {
+    public void flushMessages(final SockJsSession session, final Channel activeChannel) {
     }
 
     @Override

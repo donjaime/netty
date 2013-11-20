@@ -15,6 +15,7 @@
  */
 package io.netty.handler.codec.sockjs.handlers;
 
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 
 /**
@@ -36,14 +37,10 @@ interface SessionState {
     void onConnect(final SockJsSession session, final ChannelHandlerContext ctx);
 
     /**
-     * Called when a request for a connected session is received.
+     * Flushed any queued messages.
      *
-     * @param session the {@link SockJsSession}.
-     * @param ctx the {@link ChannelHandlerContext} for the current connection/channel. Note
-     *            that this ChannelHandlerContext is different from the one that opened the
-     *            the sesssion and was passed to the onConnect method.
      */
-    void onOpen(final SockJsSession session, final ChannelHandlerContext ctx);
+    void flushMessages(final SockJsSession session, final Channel activeChannel);
 
     /**
      * Called after the {@link SockJsSession#onClose()} method has been called enabling

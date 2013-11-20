@@ -25,6 +25,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import io.netty.util.ReferenceCountUtil;
 import org.codehaus.jackson.io.JsonStringEncoder;
 
 /**
@@ -60,7 +61,9 @@ public class MessageFrame extends DefaultByteBufHolder implements Frame {
         for (int i = 0; i < size; i++) {
             content.writeByte('"');
             final String escaped = escapeCharacters(jsonEndocder.quoteAsString(messages[i]));
-            content.writeBytes(Unpooled.copiedBuffer(escaped, CharsetUtil.UTF_8)).writeByte('"');
+            ByteBuf escapedBuf = Unpooled.copiedBuffer(escaped, CharsetUtil.UTF_8);
+            content.writeBytes(escapedBuf).writeByte('"');
+            ReferenceCountUtil.release(escapedBuf);
             if (i < size - 1) {
                 content.writeByte(',');
             }

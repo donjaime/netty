@@ -43,29 +43,22 @@ class StreamingSessionState extends AbstractTimersSessionState {
     }
 
     @Override
-    public void onOpen(final SockJsSession session, final ChannelHandlerContext ctx) {
-        flushMessages(ctx, session);
-    }
-
-    private void flushMessages(final ChannelHandlerContext ignored, final SockJsSession session) {
-        final Channel channel = session.context().channel();
-        if (channel.isActive() && channel.isRegistered()) {
-            final String[] allMessages = session.getAllMessages();
-            if (allMessages.length == 0) {
-                return;
-            }
-
-            final MessageFrame messageFrame = new MessageFrame(allMessages);
-            logger.debug("flushing [" + messageFrame + "]");
-            channel.writeAndFlush(messageFrame).addListener(new ChannelFutureListener() {
-                @Override
-                public void operationComplete(final ChannelFuture future) throws Exception {
-                    if (!future.isSuccess()) {
-                        session.addMessages(allMessages);
-                    }
-                }
-            });
+    public void flushMessages(final SockJsSession session, final Channel activeChannel) {
+        final String[] allMessages = session.getAllMessages();
+        if (allMessages.length == 0) {
+            return;
         }
+
+        final MessageFrame messageFrame = new MessageFrame(allMessages);
+        logger.debug("flushing [" + messageFrame + "]");
+        activeChannel.writeAndFlush(messageFrame).addListener(new ChannelFutureListener() {
+            @Override
+            public void operationComplete(final ChannelFuture future) throws Exception {
+                if (!future.isSuccess()) {
+                    session.addMessages(allMessages);
+                }
+            }
+        });
     }
 
     @Override

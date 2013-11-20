@@ -42,14 +42,15 @@ import io.netty.util.internal.logging.InternalLoggerFactory;
 public class SessionHandler extends ChannelInboundHandlerAdapter implements SockJsSessionContext {
 
     private static final InternalLogger logger = InternalLoggerFactory.getInstance(SessionHandler.class);
-    public enum Events { CLOSE_SESSION, HANDLE_SESSION };
+
+  public enum Events { CLOSE_SESSION, HANDLE_SESSION };
 
     private final SessionState sessionState;
     private final SockJsSession session;
     private ChannelHandlerContext currentContext;
 
     public SessionHandler(final SessionState sessionState, final SockJsSession session) {
-        ArgumentUtil.checkNotNull(sessionState, "sessionState");
+      ArgumentUtil.checkNotNull(sessionState, "sessionState");
         this.sessionState = sessionState;
         this.session = session;
     }
@@ -66,24 +67,25 @@ public class SessionHandler extends ChannelInboundHandlerAdapter implements Sock
     }
 
     private void handleSession(final ChannelHandlerContext ctx) throws Exception {
-        currentContext = ctx;
+        this.currentContext = ctx;
         logger.debug("handleSession " + sessionState);
         switch (session.getState()) {
         case CONNECTING:
             logger.debug("State.CONNECTING sending open frame");
             ctx.channel().writeAndFlush(new OpenFrame());
-            session.setContext(ctx);
             session.onOpen(this);
+            session.setContext(ctx);
             sessionState.onConnect(session, ctx);
             break;
         case OPEN:
-            if (sessionState.isInUse(session)) {
+            if (session.inuse() && sessionState.isInUse(session)) {
                 logger.debug("Another connection still in open for [" + session.sessionId() + "]");
                 ctx.writeAndFlush(new CloseFrame(2010, "Another connection still open"));
                 session.setState(States.INTERRUPTED);
             } else {
                 session.setInuse();
-                sessionState.onOpen(session, ctx);
+                session.setContext(ctx);
+                sessionState.flushMessages(session, getActiveChannel());
             }
             break;
         case INTERRUPTED:
@@ -104,6 +106,7 @@ public class SessionHandler extends ChannelInboundHandlerAdapter implements Sock
     public void send(String message) {
         final Channel channel = getActiveChannel();
         if (isWritable(channel)) {
+            sessionState.flushMessages(session, getActiveChannel());
             channel.writeAndFlush(new MessageFrame(message));
         } else {
             session.addMessage(message);

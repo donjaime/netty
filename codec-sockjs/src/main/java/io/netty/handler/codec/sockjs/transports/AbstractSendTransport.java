@@ -34,6 +34,7 @@ import io.netty.util.CharsetUtil;
 
 import java.util.List;
 
+import io.netty.util.ReferenceCountUtil;
 import org.codehaus.jackson.JsonParseException;
 
 /**

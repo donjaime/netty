@@ -47,9 +47,7 @@ class SockJsSession {
     }
 
     public synchronized void setContext(final ChannelHandlerContext ctx) {
-        if (this.ctx == null) {
-            this.ctx = ctx;
-        }
+        this.ctx = ctx;
     }
 
     public synchronized void setState(States state) {

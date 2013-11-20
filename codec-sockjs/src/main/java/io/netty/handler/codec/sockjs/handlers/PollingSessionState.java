@@ -15,6 +15,7 @@
  */
 package io.netty.handler.codec.sockjs.handlers;
 
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
@@ -49,17 +50,13 @@ class PollingSessionState extends AbstractTimersSessionState {
     }
 
     @Override
-    public void onOpen(final SockJsSession session, final ChannelHandlerContext ctx) {
-        flushMessages(ctx, session);
-    }
-
-    private void flushMessages(final ChannelHandlerContext ctx, final SockJsSession session) {
+    public void flushMessages(final SockJsSession session, final Channel activeChannel) {
         final String[] allMessages = session.getAllMessages();
         if (allMessages.length == 0) {
             return;
         }
         final MessageFrame messageFrame = new MessageFrame(allMessages);
-        ctx.channel().writeAndFlush(messageFrame).addListener(new ChannelFutureListener() {
+        activeChannel.writeAndFlush(messageFrame).addListener(new ChannelFutureListener() {
             @Override
             public void operationComplete(final ChannelFuture future) throws Exception {
                 if (!future.isSuccess()) {

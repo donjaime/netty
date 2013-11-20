@@ -42,6 +42,7 @@ import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.codec.http.ServerCookieEncoder;
 import io.netty.handler.codec.sockjs.SockJsConfig;
 import io.netty.util.CharsetUtil;
+import io.netty.util.ReferenceCountUtil;
 
 import java.util.Set;
 
@@ -109,6 +110,7 @@ public final class Transports {
         response.headers().set(CONTENT_LENGTH, buf.readableBytes());
         response.content().writeBytes(buf);
         response.headers().set(CONTENT_TYPE, contentType);
+        ReferenceCountUtil.release(buf);
     }
 
     /**
@@ -200,7 +202,11 @@ public final class Transports {
      * @return {@code ByteBuf} a copied byte buffer with a '\n' appended.
      */
     public static ByteBuf wrapWithLN(final ByteBuf buf) {
-        return Unpooled.copiedBuffer(buf, Unpooled.copiedBuffer("\n", CharsetUtil.UTF_8));
+        ByteBuf nl = Unpooled.copiedBuffer("\n", CharsetUtil.UTF_8);
+        ByteBuf ret = Unpooled.copiedBuffer(buf, nl);
+        nl.release();
+        return ret;
+        //return Unpooled.copiedBuffer(buf, Unpooled.copiedBuffer("\n", CharsetUtil.UTF_8));
     }
 
     /**
