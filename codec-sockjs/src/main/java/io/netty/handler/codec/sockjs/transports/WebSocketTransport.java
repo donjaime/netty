@@ -42,6 +42,7 @@ import io.netty.handler.codec.sockjs.handlers.SessionHandler.Events;
 import io.netty.handler.codec.sockjs.handlers.SockJsHandler;
 import io.netty.handler.codec.sockjs.util.JsonUtil;
 import io.netty.util.AttributeKey;
+import io.netty.util.ReferenceCountUtil;
 import io.netty.util.internal.logging.InternalLogger;
 import io.netty.util.internal.logging.InternalLoggerFactory;
 
@@ -72,7 +73,7 @@ public class WebSocketTransport extends SimpleChannelInboundHandler<Object> {
         }
 
         if (passMessage) {
-            ctx.fireChannelRead(msg);
+            ctx.fireChannelRead(ReferenceCountUtil.retain(msg));
         }
     }
 

@@ -62,7 +62,7 @@ public class SessionHandler extends ChannelInboundHandlerAdapter implements Sock
         } else if (msg instanceof String) {
             handleMessage((String) msg);
         } else {
-            ctx.fireChannelRead(ReferenceCountUtil.retain(msg));
+            ctx.fireChannelRead(msg);
         }
     }
 
