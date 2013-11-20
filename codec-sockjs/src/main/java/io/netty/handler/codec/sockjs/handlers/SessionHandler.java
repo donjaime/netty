@@ -72,7 +72,7 @@ public class SessionHandler extends ChannelInboundHandlerAdapter implements Sock
         switch (session.getState()) {
         case CONNECTING:
             logger.debug("State.CONNECTING sending open frame");
-            ctx.channel().writeAndFlush(new OpenFrame());
+            ctx.writeAndFlush(new OpenFrame());
             session.onOpen(this);
             session.setContext(ctx);
             sessionState.onConnect(session, ctx);

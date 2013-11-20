@@ -75,6 +75,11 @@ public class SockJsHandler extends SimpleChannelInboundHandler<FullHttpRequest> 
     private static final Pattern SERVER_SESSION_PATTERN = Pattern.compile("^/([^/.]+)/([^/.]+)/([^/.]+)");
 
     private final Map<String, SockJsServiceFactory> factories = new LinkedHashMap<String, SockJsServiceFactory>();
+
+    /**
+     * If set to {@code null} the sessions will be handled by the channel executor.
+     * Otherwise, this will be used to execute SockJs {@link SessionHandler}s.
+     * */
     private final EventLoopGroup sessionHandlerGroup;
 
     /**
@@ -184,18 +189,12 @@ public class SockJsHandler extends SimpleChannelInboundHandler<FullHttpRequest> 
     }
 
     private void addTransportHandler(final ChannelHandler transportHandler, final ChannelHandlerContext ctx) {
-        ctx.pipeline().addLast(transportHandler);
+      ctx.pipeline().addLast(transportHandler);
     }
 
     private void addSessionHandler(final SessionState sessionState, final SockJsSession session,
             final ChannelHandlerContext ctx) {
-        if (this.sessionHandlerGroup != null) {
-          // Isolated thread pool.
-          ctx.pipeline().addLast(this.sessionHandlerGroup, new SessionHandler(sessionState, session));
-        } else {
-          // Fall back to the worker group.
-          ctx.pipeline().addLast(new SessionHandler(sessionState, session));
-        }
+      ctx.pipeline().addLast(this.sessionHandlerGroup, new SessionHandler(sessionState, session));
     }
 
     private void checkSessionExists(final String sessionId, final HttpRequest request) throws SessionNotFoundException {

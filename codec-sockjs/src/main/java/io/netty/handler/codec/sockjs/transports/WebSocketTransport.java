@@ -15,10 +15,6 @@
  */
 package io.netty.handler.codec.sockjs.transports;
 
-import static io.netty.handler.codec.http.HttpMethod.GET;
-import static io.netty.handler.codec.sockjs.transports.Transports.badRequestResponse;
-import static io.netty.handler.codec.sockjs.transports.Transports.internalServerErrorResponse;
-import static io.netty.handler.codec.sockjs.transports.Transports.methodNotAllowedResponse;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
@@ -45,8 +41,12 @@ import io.netty.util.AttributeKey;
 import io.netty.util.ReferenceCountUtil;
 import io.netty.util.internal.logging.InternalLogger;
 import io.netty.util.internal.logging.InternalLoggerFactory;
-
 import org.codehaus.jackson.JsonParseException;
+
+import static io.netty.handler.codec.http.HttpMethod.GET;
+import static io.netty.handler.codec.sockjs.transports.Transports.badRequestResponse;
+import static io.netty.handler.codec.sockjs.transports.Transports.internalServerErrorResponse;
+import static io.netty.handler.codec.sockjs.transports.Transports.methodNotAllowedResponse;
 
 /**
  * WebSocketTransport is responsible for the WebSocket handshake and
@@ -61,7 +61,7 @@ public class WebSocketTransport extends SimpleChannelInboundHandler<Object> {
     private boolean passMessage = true;
 
     public WebSocketTransport(final SockJsConfig config) {
-        this.config = config;
+      this.config = config;
     }
 
     @Override
@@ -123,12 +123,12 @@ public class WebSocketTransport extends SimpleChannelInboundHandler<Object> {
                 public void operationComplete(final ChannelFuture future) throws Exception {
                     if (future.isSuccess()) {
                         final ChannelPipeline pipeline = future.channel().pipeline();
+                        ctx.pipeline().addBefore(ctx.name(), WebSocketSendHandler.NAME, new WebSocketSendHandler());
+                        pipeline.replace(WebSocketTransport.class, "websocket-ha-proxy",
+                          new WebSocketHAProxyTransport(haHandshaker));
                         pipeline.remove(SockJsHandler.class);
                         pipeline.remove(CorsInboundHandler.class);
                         pipeline.remove(CorsOutboundHandler.class);
-                        pipeline.replace(WebSocketTransport.class, "websocket-ha-proxy",
-                                new WebSocketHAProxyTransport(haHandshaker));
-                        pipeline.addLast(new WebSocketSendHandler());
                     }
                 }
             });
@@ -148,10 +148,10 @@ public class WebSocketTransport extends SimpleChannelInboundHandler<Object> {
                 @Override
                 public void operationComplete(final ChannelFuture future) throws Exception {
                     if (future.isSuccess()) {
+                        ctx.pipeline().addBefore(ctx.name(), WebSocketSendHandler.NAME, new WebSocketSendHandler());
                         ctx.pipeline().remove(SockJsHandler.class);
                         ctx.pipeline().remove(CorsInboundHandler.class);
                         ctx.pipeline().remove(CorsOutboundHandler.class);
-                        ctx.pipeline().addLast(new WebSocketSendHandler());
                     } else {
                         future.cause().printStackTrace();
                     }

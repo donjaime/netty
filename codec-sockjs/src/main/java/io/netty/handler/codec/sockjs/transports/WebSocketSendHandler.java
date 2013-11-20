@@ -27,7 +27,10 @@ import io.netty.util.internal.logging.InternalLogger;
 import io.netty.util.internal.logging.InternalLoggerFactory;
 
 class WebSocketSendHandler extends ChannelOutboundHandlerAdapter {
+    public static final String NAME = "websocketSend";
+
     private static final InternalLogger logger = InternalLoggerFactory.getInstance(WebSocketSendHandler.class);
+
 
     @Override
     public void write(final ChannelHandlerContext ctx, final Object msg, final ChannelPromise promise)
