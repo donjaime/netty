@@ -62,11 +62,11 @@ abstract class AbstractTimersSessionState implements SessionState {
                     }
                     if (session.timestamp() + session.config().sessionTimeout() < now) {
                         final SockJsSession removed = sessions.remove(session.sessionId());
-                        //if (ctx.handler() instanceof SockJsSessionContext) {
-                        //  ((SockJsSessionContext) ctx.handler()).close();
-                        //} else {
+                        if (ctx.handler() instanceof SockJsSessionContext) {
+                          ((SockJsSessionContext) ctx.handler()).close();
+                        } else {
                           session.context().close();
-                        //}
+                        }
                         sessionTimer.cancel(true);
                         heartbeatFuture.cancel(true);
                         logger.debug("Removed " + removed.sessionId() + " from map[" + sessions.size() + "]");

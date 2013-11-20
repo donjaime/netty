@@ -31,7 +31,6 @@ class WebSocketSendHandler extends ChannelOutboundHandlerAdapter {
 
     private static final InternalLogger logger = InternalLoggerFactory.getInstance(WebSocketSendHandler.class);
 
-
     @Override
     public void write(final ChannelHandlerContext ctx, final Object msg, final ChannelPromise promise)
             throws Exception {
